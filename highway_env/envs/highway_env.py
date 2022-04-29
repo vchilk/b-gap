@@ -104,7 +104,7 @@ class HighwayEnv(AbstractEnv):
             else self.vehicle.lane_index[2]
         scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
         reward = 0
-        reward += len(neighbors)**2
+        reward += len(neighbours)**2
         reward += scaled_speed
         reward += self.config["collision_reward"] * self.vehicle.crashed * 10
         reward += self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1)
