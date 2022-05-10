@@ -83,7 +83,8 @@ class Evaluation(object):
         self.write_metadata()
         self.filtered_agent_stats = 0
         self.best_agent_stats = -np.infty, 0
-
+        self.state_writer = open("states.txt", "a")
+        self.obsv_cache = np.empty((1, 5, 5))
         self.recover = recover
         if self.recover:
             self.load_agent_model(self.recover)
@@ -158,6 +159,15 @@ class Evaluation(object):
         """
         # Query agent for actions sequence
         actions = self.agent.plan(self.observation)
+        self.obsv_cache = np.concatenate((self.obsv_cache, self.observation.reshape(1, 5 ,5)), axis=0)
+        for i in range(self.observation.shape[0]):
+            x_coord = self.observation[i][1]
+            y_coord = self.observation[i][2]
+            self.state_writer.write(f'{x_coord}, {y_coord}')
+            if i < 4:
+                self.state_writer.write(', ')
+            else:
+                self.state_writer.write('\n')
         if not actions:
             raise Exception("The agent did not plan any action")
 
@@ -376,3 +386,6 @@ class Evaluation(object):
         self.writer.close()
         if self.close_env:
             self.env.close()
+        np.save("observations", self.obsv_cache)
+        self.state_writer.close()
+

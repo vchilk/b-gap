@@ -28,7 +28,7 @@ class HighwayEnv(AbstractEnv):
                 "type": "DiscreteMetaAction",
             },
             "lanes_count": 4,
-            "vehicles_count": 50,
+            "vehicles_count": 2,
             "controlled_vehicles": 1,
             "other_vehicles_type": "highway_env.vehicle.behavior.IDMVehicle",
             "aggressive_vehicle_type": "highway_env.vehicle.behavior.AggressiveCar",
