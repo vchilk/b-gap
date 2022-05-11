@@ -66,6 +66,7 @@ def evaluate(environment_config, agent_config, options):
     options['--seed'] = int(options['--seed']) if options['--seed'] is not None else None
     evaluation = Evaluation(env,
                             agent,
+                            enriched=True,
                             run_directory=run_directory,
                             num_episodes=int(options['--episodes']),
                             sim_seed=options['--seed'],
