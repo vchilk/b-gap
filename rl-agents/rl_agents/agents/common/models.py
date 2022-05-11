@@ -48,10 +48,13 @@ class BaseModule(torch.nn.Module):
 
 
 class MultiLayerPerceptron(BaseModule, Configurable):
-    def __init__(self, config):
+    def __init__(self, config, enriched=False):
         super().__init__()
         Configurable.__init__(self, config)
-        sizes = [self.config["in"]] + self.config["layers"]
+        if enriched:
+            sizes = [35] + self.config["layers"]
+        else:
+            sizes = [self.config["in"]] + self.config["layers"]
         self.activation = activation_factory(self.config["activation"])
         layers_list = [nn.Linear(sizes[i], sizes[i + 1]) for i in range(len(sizes) - 1)]
         self.layers = nn.ModuleList(layers_list)
@@ -428,9 +431,9 @@ def size_model_config(env, model_config):
         model_config["out"] = env.action_space.spaces[0].n
 
 
-def model_factory(config: dict) -> nn.Module:
+def model_factory(config: dict, enriched:bool=False) -> nn.Module:
     if config["type"] == "MultiLayerPerceptron":
-        return MultiLayerPerceptron(config)
+        return MultiLayerPerceptron(config, enriched)
     elif config["type"] == "DuelingNetwork":
         return DuelingNetwork(config)
     elif config["type"] == "ConvolutionalNetwork":

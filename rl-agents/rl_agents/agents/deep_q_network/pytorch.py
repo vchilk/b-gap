@@ -15,8 +15,8 @@ class DQNAgent(AbstractDQNAgent):
     def __init__(self, env, config=None):
         super(DQNAgent, self).__init__(env, config)
         size_model_config(self.env, self.config["model"])
-        self.value_net = model_factory(self.config["model"])
-        self.target_net = model_factory(self.config["model"])
+        self.value_net = model_factory(self.config["model"], enriched=True)
+        self.target_net = model_factory(self.config["model"], enriched=True)
         self.target_net.load_state_dict(self.value_net.state_dict())
         self.target_net.eval()
         logger.debug("Number of trainable parameters: {}".format(trainable_parameters(self.value_net)))
@@ -95,10 +95,15 @@ class DQNAgent(AbstractDQNAgent):
     def initialize_model(self):
         self.value_net.reset()
 
-    def set_writer(self, writer):
+    def set_writer(self, writer, enriched=False):
         super().set_writer(writer)
         obs_shape = self.env.observation_space.shape if isinstance(self.env.observation_space, spaces.Box) else \
             self.env.observation_space.spaces[0].shape
-        model_input = torch.zeros((1, *obs_shape), dtype=torch.float, device=self.device)
+        enriched=True
+        if enriched:
+            input_size_shape = (7, 5)
+        else:
+            input_size_shape = obs_shape
+        model_input = torch.zeros((1, *input_size_shape), dtype=torch.float, device=self.device)
         self.writer.add_graph(self.value_net, input_to_model=(model_input,)),
         self.writer.add_scalar("agent/trainable_parameters", trainable_parameters(self.value_net), 0)

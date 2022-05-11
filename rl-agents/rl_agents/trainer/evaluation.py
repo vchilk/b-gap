@@ -6,6 +6,8 @@ import time
 from multiprocessing.pool import Pool
 from pathlib import Path
 import numpy as np
+import torch
+from model import MLPClassifier
 from tensorboardX import SummaryWriter
 
 import rl_agents.trainer.logger
@@ -43,7 +45,8 @@ class Evaluation(object):
                  display_env=True,
                  display_agent=True,
                  display_rewards=True,
-                 close_env=True):
+                 close_env=True,
+                 enriched=False):
         """
 
         :param env: The environment to be solved, possibly wrapping an AbstractEnv environment
@@ -85,6 +88,9 @@ class Evaluation(object):
         self.best_agent_stats = -np.infty, 0
         self.state_writer = open("states.txt", "a")
         self.obsv_cache = np.empty((1, 5, 5))
+        self.enriched = enriched
+        self.agg_net = MLPClassifier()
+        self.agg_net.load_state_dict(torch.load('mlp.th'))
         self.recover = recover
         if self.recover:
             self.load_agent_model(self.recover)
@@ -158,7 +164,12 @@ class Evaluation(object):
             Plan a sequence of actions according to the agent policy, and step the environment accordingly.
         """
         # Query agent for actions sequence
-        actions = self.agent.plan(self.observation)
+        agg_preds = self.agg_net(self.observation.flatten().reshape(1, -1)).reshape((2, 5))
+        #observation: 5x5
+        #new_observation: 5x7 or 7x5
+        new_observation = np.concatenate((self.observation, agg_preds.detach().numpy()), axis=0)
+        print(new_observation.shape)
+        actions = self.agent.plan(new_observation)
         self.obsv_cache = np.concatenate((self.obsv_cache, self.observation.reshape(1, 5 ,5)), axis=0)
         for i in range(self.observation.shape[0]):
             x_coord = self.observation[i][1]
