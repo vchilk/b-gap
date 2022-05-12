@@ -164,10 +164,10 @@ class Evaluation(object):
             Plan a sequence of actions according to the agent policy, and step the environment accordingly.
         """
         # Query agent for actions sequence
-        agg_preds = self.agg_net(self.observation.flatten().reshape(1, -1)).reshape((2, 5))
+        agg_preds = self.agg_net(self.observation.flatten().reshape(1, -1)).reshape((5, 2))
         #observation: 5x5
         #new_observation: 5x7 or 7x5
-        new_observation = np.concatenate((self.observation, agg_preds.detach().numpy()), axis=0)
+        new_observation = np.concatenate((self.observation, agg_preds.detach().numpy()), axis=1)
         print(new_observation.shape)
         actions = self.agent.plan(new_observation)
         self.obsv_cache = np.concatenate((self.obsv_cache, self.observation.reshape(1, 5 ,5)), axis=0)
