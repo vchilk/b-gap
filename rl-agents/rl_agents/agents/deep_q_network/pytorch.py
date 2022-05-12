@@ -51,8 +51,10 @@ class DQNAgent(AbstractDQNAgent):
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
         #add empty columns for SIE/SLE
-        empty_enriched = torch.zeros((32, 2, 5)).to(self.device)
-        state_action_values = self.value_net(torch.cat((batch.state, empty_enriched), dim=1).to(self.device))
+        empty_enriched = torch.zeros((32, 5, 2)).to(self.device)
+        new_state = torch.cat((batch.state, empty_enriched), dim=2).to(self.device)
+        state_action_values = self.value_net(new_state)
+        
         state_action_values = state_action_values.gather(1, batch.action.unsqueeze(1)).squeeze(1)
 
         if target_state_action_value is None:
@@ -65,7 +67,8 @@ class DQNAgent(AbstractDQNAgent):
                     # Double Q-learning: estimate action values from target network
                     best_values = self.target_net(batch.next_state).gather(1, best_actions.unsqueeze(1)).squeeze(1)
                 else:
-                    best_values, _ = self.target_net(torch.cat((batch.next_state, empty_enriched), dim=1).to(self.device)).max(1)
+                    new_state = torch.cat((batch.next_state, empty_enriched), dim=2).to(self.device)
+                    best_values, _ = self.target_net(new_state).max(1)
                 next_state_values[~batch.terminal] = best_values[~batch.terminal]
                 # Compute the expected Q values
                 target_state_action_value = batch.reward + self.config["gamma"] * next_state_values
