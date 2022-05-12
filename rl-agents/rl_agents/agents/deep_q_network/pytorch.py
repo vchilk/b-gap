@@ -51,7 +51,7 @@ class DQNAgent(AbstractDQNAgent):
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
         #add empty columns for SIE/SLE
-        empty_enriched = torch.zeros((32, 2, 5))
+        empty_enriched = torch.zeros((32, 2, 5)).to(self.device)
         state_action_values = self.value_net(torch.cat((batch.state, empty_enriched), dim=1).to(self.device))
         state_action_values = state_action_values.gather(1, batch.action.unsqueeze(1)).squeeze(1)
 
